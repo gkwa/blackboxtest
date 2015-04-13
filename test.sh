@@ -20,3 +20,8 @@ EOF
 
 gpg2 --batch --gen-key foo
 gpg2 --no-default-keyring --secret-keyring ./foo.sec --keyring ./foo.pub --list-secret-keys
+
+
+export PATH=blackbox/bin:$PATH
+
+blackbox_addadmin KEYNAME
