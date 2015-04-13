@@ -1,4 +1,4 @@
-/foo
-/foo.sec
-/foo.pub
+/repo
 /blackbox/
+pubring.gpg~
+secring.gpg
