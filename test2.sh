@@ -29,7 +29,7 @@ git commit -m'INITIALIZE BLACKBOX' keyrings .gitignore
 
 cd $topdir/repo/keyrings/live
 
-cat >foo <<EOF
+cat >/tmp/foo <<EOF
 %echo Generating a basic OpenPGP key
 Key-Type: DSA
 Key-Length: 1024
@@ -40,22 +40,26 @@ Name-Comment: with stupid passphrase
 Name-Email: tailor@u.washington.edu
 Expire-Date: 1
 Passphrase: abc
-%pubring pubring.gpg
-%secring secring.gpg
-# Do a commit here, so that we can later print "done" :-)
-%commit
-%echo done
+#%pubring pubring.gpg
+#%secring secring.gpg
+## Do a commit here, so that we can later print "done" :-)
+#%commit
+#%echo done
 EOF
 
 rm -rf /Users/demo/.gnupg
 
 cd $topdir/repo
-gpg2 --homedir=$topdir/repo/keyrings/live --batch --gen-key foo
-test -d /Users/demo/.gnupg && echo /Users/demo/.gnupg exists && exit 1
-gpg2 --homedir=keyrings/live --no-default-keyring --secret-keyring ./secring.gpg --keyring ./pubring.gpg --list-secret-keys
-test -d /Users/demo/.gnupg && echo /Users/demo/.gnupg exists && exit 1
+gpg2 --gen-key --batch /tmp/foo
 
-blackbox_addadmin tailor@u.washington.edu $topdir/repo/keyrings/live
+gpg2 --homedir=keyrings/live --no-default-keyring --secret-keyring ./secring.gpg --keyring ./pubring.gpg --list-secret-keys
+
+
+blackbox_addadmin tailor@u.washington.edu
+
+exit
+
+
 
 # blackbox_addadmin tailor@u.washington.edu
 git add keyrings/live/pubring.gpg
