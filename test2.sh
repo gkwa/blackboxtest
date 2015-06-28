@@ -1,6 +1,8 @@
 #!/bin/sh
 
 set -x
+set -e
+
 
 
 export PATH=`pwd`/blackbox/bin:$PATH
@@ -14,6 +16,8 @@ topdir=`pwd`
 rm -rf repo
 
 
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
+
 
 mkdir repo
 cd $topdir/repo
@@ -21,6 +25,9 @@ git init
 echo test >test.txt
 git add test.txt
 git commit -m test
+
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
+
 echo yes | blackbox_initialize
 chmod -R 700 keyrings
 git commit -m'INITIALIZE BLACKBOX' keyrings .gitignore
@@ -42,23 +49,32 @@ Expire-Date: 1
 Passphrase: abc
 #%pubring pubring.gpg
 #%secring secring.gpg
-## Do a commit here, so that we can later print "done" :-)
-#%commit
-#%echo done
+# Do a commit here, so that we can later print "done" :-)
+%commit
+%echo done
 EOF
 
-rm -rf /Users/demo/.gnupg
+
+
+rm -rf ~/.gnupg
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
+
 
 cd $topdir/repo
-gpg2 --gen-key --batch /tmp/foo
+gpg2 --homedir=$topdir/repo/keyrings/live --gen-key --batch /tmp/foo
 
-gpg2 --homedir=keyrings/live --no-default-keyring --secret-keyring ./secring.gpg --keyring ./pubring.gpg --list-secret-keys
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 
 
-blackbox_addadmin tailor@u.washington.edu
+gpg2 --homedir=$topdir/repo/keyrings/live --no-default-keyring --secret-keyring secring.gpg --keyring pubring.gpg --list-secret-keys
 
-exit
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 
+
+blackbox_addadmin tailor@u.washington.edu $topdir/repo/keyrings/live
+
+
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 
 
 # blackbox_addadmin tailor@u.washington.edu
@@ -73,20 +89,22 @@ cd $topdir/repo
 gpg2 --homedir=keyrings/live --list-keys
 
 
-eval $(gpg-agent --homedir=keyrings/live --daemon)
+eval $(gpg-agent --verbose --daemon)
 
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 
 gpg2 --homedir=keyrings/live --list-keys
 
 cd $topdir/repo
 rm -f foo.txt.gpg foo.txt
 echo This is a test. >foo.txt
-test -d /Users/demo/.gnupg && echo /Users/demo/.gnupg exists && exit 1
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
+# blackbox_register_new_file foo.txt $topdir/repo/keyrings/live
 blackbox_register_new_file foo.txt
 
-test -d /Users/demo/.gnupg && echo /Users/demo/.gnupg exists && exit 1
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 blackbox_register_new_file $topdir/repo/foo.txt  $topdir/repo/keyrings/live
-test -d /Users/demo/.gnupg && echo /Users/demo/.gnupg exists && exit 1
+test -f ~/.gnupg/secring.gpg && echo ~/.gnupg/secring.gpg exists && exit 1
 
 # blackbox_register_new_file foo.txt
 
